@@ -2,9 +2,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult, QuizQuestion, JuniorDiscoveryResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+function getAI() {
+  if (!aiInstance) {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not defined in environment variables.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+}
 
 export async function generateJuniorQuiz(): Promise<QuizQuestion[]> {
+  const ai = getAI();
   const model = "gemini-3-flash-preview";
   const prompt = `Generate a comprehensive 10-question career aptitude quiz for a teenager (under 18). 
   The questions should be engaging and help discover their latent interests in technology, creative arts, scientific research, social impact, entrepreneurship, and leadership.
@@ -23,6 +35,7 @@ export async function generateJuniorQuiz(): Promise<QuizQuestion[]> {
 }
 
 export async function evaluateJuniorQuiz(answers: { question: string, answer: string }[]): Promise<JuniorDiscoveryResult> {
+  const ai = getAI();
   const model = "gemini-3-flash-preview";
   const prompt = `A teenager answered these 10 questions identifying their interests: ${JSON.stringify(answers)}. 
   Suggest 4 distinct career paths they can pursue once they reach 18 and provide deep strategic advice on what foundational projects and subjects they should focus on now.
@@ -45,7 +58,8 @@ export async function analyzeCareerPath(
   resumeText: string,
   targetRole: string
 ): Promise<AnalysisResult> {
-  const model = "gemini-3-pro-preview";
+  const ai = getAI();
+  const model = "gemini-3.1-pro-preview";
 
   const prompt = `
     You are "You Dream, We Build", an expert career architect and strategist.
@@ -104,3 +118,4 @@ export async function analyzeCareerPath(
     throw new Error("The AI Agent encountered an error while constructing your roadmap.");
   }
 }
+
