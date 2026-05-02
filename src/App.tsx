@@ -20,10 +20,10 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { analyzeCareerPath, generateJuniorQuiz, evaluateJuniorQuiz } from './services/geminiService';
-import { AnalysisResult, QuizQuestion, JuniorDiscoveryResult, SkillGap } from './types';
-import { SkillRadar } from './components/SkillRadar';
-import { RoadmapView } from './components/RoadmapView';
+import { analyzeCareerPath, generateJuniorQuiz, evaluateJuniorQuiz } from '@/services/geminiService';
+import { AnalysisResult, QuizQuestion, JuniorDiscoveryResult, SkillGap } from '@/types';
+import { SkillRadar } from '@/components/SkillRadar';
+import { RoadmapView } from '@/components/RoadmapView';
 
 const MOTIVATIONAL_QUOTES = [
   "The best way to predict the future is to create it.",
