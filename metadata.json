@@ -3,5 +3,6 @@
   "description": "An agentic AI co-pilot that analyzes your profile, identifies skill gaps, and generates a personalized 30-day adaptive learning roadmap for your dream career.",
   "requestFramePermissions": [
     "camera"
-  ]
+  ],
+  "majorCapabilities": []
 }
