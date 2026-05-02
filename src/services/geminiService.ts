@@ -1,20 +1,16 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { AnalysisResult, QuizQuestion, JuniorDiscoveryResult } from "@/types";
 
 let aiInstance: GoogleGenAI | null = null;
 
 function getAI() {
   if (!aiInstance) {
-    // Check various common environment variable names for the Gemini API key
-    // We prioritize VITE_ prefixes for Vite/Vercel support
-    const apiKey = 
-      (import.meta.env?.VITE_GEMINI_API_KEY) || 
-      (process.env.GEMINI_API_KEY) || 
-      (process.env.API_KEY);
+    // As per gemini-api skill for React (Vite)
+    const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not defined. Please add it to your environment variables (VITE_GEMINI_API_KEY).");
+      throw new Error("GEMINI_API_KEY is not defined. In Vercel, please add it to your environment variables.");
     }
     aiInstance = new GoogleGenAI({ apiKey });
   }
@@ -23,37 +19,39 @@ function getAI() {
 
 export async function generateJuniorQuiz(): Promise<QuizQuestion[]> {
   const ai = getAI();
-  const model = "gemini-1.5-flash";
+  const model = "gemini-3-flash-preview";
   const prompt = `Generate a comprehensive 10-question career aptitude quiz for a teenager (under 18). 
   The questions should be engaging and help discover their latent interests in technology, creative arts, scientific research, social impact, entrepreneurship, and leadership.
   Mix abstract personality questions with interest-based scenarios.
   Respond in JSON format: [{"id": 1, "question": "...", "options": ["Option A", "Option B", "Option C", "Option D"]}]`;
 
-  const result = await ai.getGenerativeModel({ model }).generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: prompt,
+    config: {
       responseMimeType: "application/json",
     },
   });
 
-  return JSON.parse(result.response.text() || "[]");
+  return JSON.parse(response.text || "[]");
 }
 
 export async function evaluateJuniorQuiz(answers: { question: string, answer: string }[]): Promise<JuniorDiscoveryResult> {
   const ai = getAI();
-  const model = "gemini-1.5-flash";
+  const model = "gemini-3-flash-preview";
   const prompt = `A teenager answered these 10 questions identifying their interests: ${JSON.stringify(answers)}. 
   Suggest 4 distinct career paths they can pursue once they reach 18 and provide deep strategic advice on what foundational projects and subjects they should focus on now.
   Respond in JSON: { "recommendedPaths": [{ "title": "...", "description": "...", "preReqs": ["..."] }], "advice": "..." }`;
 
-  const result = await ai.getGenerativeModel({ model }).generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: prompt,
+    config: {
       responseMimeType: "application/json",
     },
   });
 
-  return JSON.parse(result.response.text() || "{}");
+  return JSON.parse(response.text || "{}");
 }
 
 export async function analyzeCareerPath(
@@ -63,8 +61,7 @@ export async function analyzeCareerPath(
   targetRole: string
 ): Promise<AnalysisResult> {
   const ai = getAI();
-  // Using gemini-1.5-flash for maximum reliability and quota headroom
-  const model = "gemini-1.5-flash";
+  const model = "gemini-3-flash-preview";
 
   const prompt = `
     You are "You Dream, We Build", an expert career architect and strategist.
@@ -105,16 +102,17 @@ export async function analyzeCareerPath(
     }
   `;
 
-  const result = await ai.getGenerativeModel({ model }).generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: {
+  const response = await ai.models.generateContent({
+    model: model,
+    contents: prompt,
+    config: {
       responseMimeType: "application/json",
       temperature: 0.7,
     },
   });
 
   try {
-    const text = result.response.text();
+    const text = response.text;
     const parsed = JSON.parse(text || "{}");
     return parsed as AnalysisResult;
   } catch (error) {
